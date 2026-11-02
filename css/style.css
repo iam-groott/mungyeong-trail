@@ -1,0 +1,1242 @@
+/* 모바일 우선. 넓은 화면에서는 가운데 한 줄(최대 560px)로 보여 준다.
+   색: 주황·빨강·파랑 강조색 + 검정·흰색 (춘천마라톤 페이지와 같은 틀) */
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  /* (마라톤 페이지에서 가져온 기본 색. 레전드 트레일 색은 파일 맨 끝 '레전드 트레일 테마'에서 덮어씀) */
+  --blue: #2f6bff;
+  --violet: #7b3cff;
+  --magenta: #ff2e93;
+  --silver: #c9cdd3;
+  --orange: #f5821f;
+  --red: #ff2e93;
+  --surface: #111216;
+  --surface-2: #1a1c22;
+  --line: #24262d;
+  --text: #ffffff;
+  --text-sub: #9a9fab;
+  --pad: 12px;
+  /* 강조색: 선택 표시 등. 줄·밑줄은 아래 --grad 그라데이션을 씀 */
+  --accent: #2f6bff;
+  --grad: linear-gradient(90deg, #1e6bff 0%, #7b3cff 50%, #ff2e93 100%);
+  --latin: 'Montserrat', 'Pretendard', sans-serif;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html { -webkit-text-size-adjust: 100%; background: var(--black); color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--black);
+  color: var(--text);
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.page {
+  max-width: 560px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--black);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ---------- 상단 ---------- */
+.top {
+  position: relative;
+  background: var(--black);
+  color: var(--white);
+  padding: calc(10px + env(safe-area-inset-top)) var(--pad) 5px;
+}
+/* CI 세 가지 색 띠 (페이지 맨 위) */
+/*
+.top::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 4px;
+  background: linear-gradient(90deg,
+    var(--orange) 0 33.33%, var(--red) 33.33% 66.66%, var(--blue) 66.66% 100%);
+}
+*/
+.top-row { display: flex; align-items: center; justify-content: space-between; gap: 0; }
+.top h1 { margin: 0; font-size: 1.1rem; font-weight: 800; letter-spacing: -0.02em; }
+.top-right { display: flex; align-items: center; gap: 8px; flex: none; }
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #5a5a5a;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--white);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+.help-btn:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.dday {
+  flex: none;
+  padding: 1px 9px;
+  border-radius: 4px;
+  background: var(--orange);
+  color: var(--black);
+  font-weight: 800;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+.top-sub { margin: 0; font-size: 0.78rem; color: var(--text-sub); }
+
+.notice {
+  margin: 0;
+  padding: 8px var(--pad);
+  border-left: 4px solid var(--blue);
+  background: #0d1a28;
+  color: #dbe8f6;
+  font-size: 0.85rem;
+}
+
+/* ---------- 지도 ---------- */
+.map-box { position: relative; height: 36vh; min-height: 220px; max-height: 360px; }
+#map { position: absolute; inset: 0; background: #0a0a0a; }
+.leaflet-container { font-family: inherit; }
+.leaflet-control-attribution { font-size: 10px; }
+
+/* 지도 초기화 버튼 (오른쪽 위, 한양도성 페이지와 같은 모양) */
+.reset-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  background: #1a1d24ee;
+  color: #e8eaed;
+  border: 1px solid #2a2e37;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, opacity .15s;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, .4);
+  opacity: .7;
+}
+.reset-btn:hover, .reset-btn:focus-visible { opacity: 1; }
+.reset-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* CP 표시 켜기/끄기 (지도 왼쪽 위, 한양도성 범례와 같은 모양) */
+.map-legend {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.map-legend[hidden] { display: none; }
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 30px;              /* 손가락으로 누르기 편한 높이 */
+  padding: 0 10px;
+  border: 1px solid #2a2e37;
+  border-radius: 5px;
+  background: #1a1d24ee;
+  color: #e8eaed;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, .4);
+  transition: opacity .15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.legend-item.off { opacity: .5; }
+.legend-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.legend-item .dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid #fff; }
+.legend-item.off .dot { background: transparent !important; }
+/* CP 버튼 점: 급수대(파랑)·스펀지(청록) 반반 */
+.dot-cp { background: linear-gradient(90deg, #2a86e0 50%, #14b8a6 50%); }
+.dot-km { background: #9ca3af; }
+.legend-item[hidden] { display: none; }
+/* CCTV 버튼 점: LIVE 배지와 같은 빨강 */
+.dot-cctv { background: #e5484d; }
+
+/* 현재 위치 이름표 (km · 해발) */
+.leaflet-tooltip.pos-label { font-weight: 600; pointer-events: none; }
+/* CP 이름표는 보기 전용: 열려 있어도 밑의 다른 CP·코스 선을 누를 수 있게 */
+.leaflet-tooltip.cp-label.aid-label { pointer-events: none; }
+
+/* 지점 표시: 작은 원 + 흰 말풍선 (Leaflet 기본 툴팁 느낌) */
+.cp-icon { background: none; border: none; }
+.cp-pin {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #444;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+.cp-pin.on { background: var(--accent); }
+/* 이름표: 모서리·테두리 없이 그림자로만 구분 */
+.leaflet-tooltip.cp-label {
+  padding: 3px 7px;
+  border: none;
+  border-radius: 0;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  font-size: 12px;
+  font-weight: 500;
+  color: #222;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.leaflet-tooltip.cp-label b { font-weight: 700; margin-left: 2px; }
+/* 이름표 둘째 줄 (강수·풍속 등) */
+.leaflet-tooltip.cp-label .lab-sub { display: block; font-size: 11px; font-weight: 500; color: #555; line-height: 1.3; }
+/* 선택한 지점: 테두리 대신 안쪽 보라색 띠 */
+.leaflet-tooltip-right.cp-label.on { box-shadow: inset 3px 0 0 var(--accent), 0 1px 4px rgba(0, 0, 0, 0.35); }
+.leaflet-tooltip-left.cp-label.on { box-shadow: inset -3px 0 0 var(--accent), 0 1px 4px rgba(0, 0, 0, 0.35); }
+.leaflet-tooltip-top.cp-label.on { box-shadow: inset 0 -3px 0 var(--accent), 0 1px 4px rgba(0, 0, 0, 0.35); }
+.leaflet-tooltip.cp-label.on b { color: var(--accent); }
+
+/* ---------- 보기 전환 (날씨 / 코스) ---------- */
+.views {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 0;
+  margin: 0;
+  background: var(--black);
+  border-bottom: 1px solid var(--line);
+}
+/* 꽉 채운 버튼 대신 밑줄형 탭: 강조색은 선택된 탭의 밑줄에만 */
+.views button {
+  min-height: 40px;
+  border: none;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--text-sub);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.views button.on { color: #fff; border-bottom-color: var(--accent); background-color: #222; }
+.views button:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+[hidden].view-weather, .view-weather[hidden] { display: none !important; }
+
+/* ---------- 지점 선택 ---------- */
+.points {
+  display: grid;
+  /* 지점 수(course.json)에 맞춰 칸이 자동으로 나뉨 */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  background: var(--black);
+  border-bottom: 1px solid var(--line);
+}
+.points button {
+  min-height: 46px;
+  border: none;
+  /*border-right: 1px solid var(--line);*/
+  background: transparent;
+  color: var(--text-sub);
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 0 0 0;
+  line-height: 1.2;
+}
+.points button:last-child { border-right: none; }
+.points .p-name { display: block; font-size: 0.9rem; font-weight: 700; color: var(--white); }
+.points .p-km { display: block; font-size: 0.72rem; color: var(--text-sub); font-variant-numeric: tabular-nums; margin-top:2px; }
+.points button { border-bottom: 3px solid transparent; /*border-bottom-color: #222;*/ }
+/* 선택 색은 지도의 코스·선택 지점과 같은 보라 */
+.points button.on { background: #1a1a1a; border-bottom-color: var(--accent); }
+.points button.on .p-km { color: #d6d6d6; }
+.points button:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
+
+/* ---------- 본문 ---------- */
+.content { padding: 8px var(--pad) 16px; }
+.meta { margin: 0; font-size: 0.76rem; color: var(--text-sub); }
+/* 지점 정보: 제목처럼 보이지 않게 작은 캡션으로 */
+.point-meta { font-size: 0.72rem; color: #8a8a8a; }
+
+/* 현재 날씨: '시간별 예보'와 같은 형식의 소제목 */
+.now { margin-top: 10px; }
+.now-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.now-head h2 { margin: 0; font-size: 0.95rem; font-weight: 800; }
+.now-time { font-size: 0.72rem; color: var(--text-sub); font-variant-numeric: tabular-nums; display:none; }
+
+/* 지금 날씨: 한 줄 4칸 */
+.now-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin: 6px 0 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.now-stats div { padding: 6px 0 6px 8px; /*border-left: 1px solid var(--line);*/ }
+.now-stats div:first-child { padding-left: 0; border-left: none; }
+.now-stats dt { font-size: 0.7rem; color: var(--text-sub); line-height: 1.3; }
+.now-stats dd {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.now-stats dd small { font-size: 0.68rem; font-weight: 600; margin-left: 1px; color: var(--text-sub); }
+
+/* ---------- 시간별 예보 (기상청 시간별 예보처럼 가로로 밀어 보는 표) ---------- */
+.hourly { margin-top: 12px; }
+.hourly-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.hourly-head h2 { margin: 0; font-size: 0.95rem; font-weight: 800; white-space: nowrap; }
+
+.range-tabs { display: flex; gap: 5px; }
+/* 지난 날짜 버튼·버튼 줄 숨김 (display:flex 가 hidden 속성을 덮지 않게) */
+.range-tabs[hidden], .range-tabs button[hidden] { display: none; }
+.range-tabs button {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid #4a4a4a;
+  border-radius: 15px;
+  background: transparent;
+  color: #d6d6d6;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.range-tabs button.on { background: var(--blue); border-color: var(--blue); color: var(--white); font-weight: 800; }
+.range-tabs button:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+
+.tl-wrap { position: relative; margin: 8px calc(var(--pad) * -1) 0; }
+.tl {
+  margin: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+}
+.tl:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+.tl-empty { margin: 0; padding: 24px var(--pad); color: var(--text-sub); font-size: 0.9rem; }
+.tl-inner { position: relative; }
+/* 예보가 아직 없는 날: 표는 흐리게, 메시지는 가운데 */
+.tl.dim { opacity: 0.25; pointer-events: none; }
+.tl-msg {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--white);
+  word-break: keep-all;
+}
+.tl-msg[hidden] { display: none; }
+
+.tl-row { display: flex; border-bottom: 1px dotted #262626; }
+.tl-row:last-child { border-bottom: none; }
+.tl-lab {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: none;
+  width: 46px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--black);
+  border-right: 1px solid var(--line);
+  color: var(--text-sub);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+.tl-lab small { font-size: 0.6rem; font-weight: 500; }
+.tl-cell {
+  flex: none;
+  width: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.tl-day { height: 30px; }
+.tl-day .tl-lab { border-right-color: transparent; }
+.tl-dayseg { flex: none; height: 30px; border-left: 1px solid #3a3a3a; }
+.tl-dayseg:first-of-type { border-left: none; }
+.tl-daylabel {
+  position: sticky;
+  left: 46px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 8px;
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+.tl-daylabel b {
+  padding: 1px 6px;
+  border-radius: 3px;
+  background-color: #0a0a0a;
+  color: #fff;
+  font-weight: 800;
+}
+/* 최저/최고 기온: 일단 숨김 (다시 보이려면 이 줄 삭제) */
+.tl-daylabel .mm { display: none; }
+.tl-daylabel .mm { color: var(--text-sub); }
+.tl-daylabel em { font-style: normal; font-weight: 700; }
+.tl-daylabel .tmn { color: #6fb2f2; }
+.tl-daylabel .tmx { color: #ff6b5e; }
+
+.tl-time { height: 26px; }
+.tl-time .tl-cell { color: #d6d6d6; border-bottom: 2px solid transparent; }
+.tl-time .src-ncst { border-bottom-color: var(--white); }
+.tl-time .src-ultra { border-bottom-color: var(--white); }
+.tl-time .src-vilage { border-bottom-color: var(--white); }
+
+.tl-icon { height: 36px; }
+.wx { display: inline-flex; }
+
+.tl-svgwrap { flex: none; }
+.tl-svg { display: block; overflow: visible; }
+.tl-line { fill: none; stroke: var(--white); stroke-width: 1.8; stroke-linejoin: round; }
+.tl-humid .tl-line { stroke: var(--blue); }
+.tl-area { fill: rgba(42, 134, 224, 0.25); stroke: none; }
+.tl-dot { stroke: var(--black); stroke-width: 1.5; }
+.tl-dot.src-ncst { fill: var(--white); }
+.tl-dot.src-ultra { fill: var(--orange); }
+.tl-dot.src-vilage { fill: var(--blue); }
+.tl-humid .tl-dot { fill: var(--blue); }
+.tl-val { fill: var(--white); font-size: 11px; font-weight: 600; text-anchor: middle; font-family: inherit; }
+.tl-humid .tl-val { fill: #cfe3f8; font-size: 10px; }
+
+.tl-rain { height: 40px; }
+.tl-rain .tl-cell { color: var(--text-sub); font-size: 0.74rem; }
+.tl-rain .tl-cell.wet { background: rgba(42, 134, 224, 0.28); color: var(--white); font-weight: 700; }
+
+.tl-pop { height: 40px; }
+.pop { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 34px; }
+.pop-num { font-size: 0.7rem; color: #d6d6d6; }
+.pop-bar { display: block; width: 16px; background: var(--blue); }
+
+.tl-wind { height: 40px; }
+.wind { display: flex; flex-direction: column; gap: 4px; line-height: 1.2; justify-content: center; align-items: center; padding-top: 3px; }
+.wind .arrow {
+  display: block;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 12px solid var(--white);
+}
+.wind .arrow.none { border: none; width: 10px; height: 12px; }
+.w-num { font-size: 0.7rem; color: #d6d6d6; /*font-weight: 700;*/ }
+/*.w-num.small { font-size: 0.68rem; font-weight: 600; color: #d6d6d6; }*/
+.w-lv { font-size: 0.62rem; color: var(--text-sub); min-height: 0.7rem; display:none; }
+
+.tl-humid { height: 62px; }
+
+.tl-race {
+  position: absolute;
+  top: 30px;
+  bottom: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.tl-race { background-color: #e5241b0f; border-left: 1px dashed var(--red); border-right: 1px dashed var(--red); }
+.tl-race span {
+  position: absolute;
+  bottom: 2px;
+  left: 3px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.tl-race span { color: #ff8a80; }
+
+.legend[hidden] { display: none; }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+  color: var(--text-sub);
+}
+.lg { display: inline-block; width: 20px; height: 0; margin-right: 5px; vertical-align: middle; }
+.lg-ncst { border-top: 3px solid var(--white); }
+.lg-ultra { border-top: 3px solid var(--orange); }
+.lg-vilage { border-top: 3px solid var(--blue); }
+.lg-race { height: 10px; background: rgba(229, 36, 27, 0.3); border-left: 2px dashed var(--red); border-right: 2px dashed var(--red); }
+
+.foot {  text-align: center; font-size: 11px; color: #6b7280; line-height: 1.6; border-top: 1px dotted #3a3a3a; padding-top: 15px; margin-top: 20px; }
+.foot a { color: #9aa0a6; text-decoration: none; }
+.foot a:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+/* 출처 / 만든 사람 / 저작권: 세 묶음 사이만 띄움 */
+.foot-group { margin: 0 0 10px; }
+.foot-group:last-child { margin-bottom: 0; }
+.foot-title { color: #9aa0a6; }
+.foot-role { display: inline-flex; align-items: center; gap: 5px; }
+/* 터미널 모양 아이콘 (파란 테두리) */
+.foot-icon { width: 13px; height: 13px; fill: none; stroke: var(--blue); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- 대회 종료 후 인사 ---------- */
+.page.ended .weather-only,
+.page.ended .content > :not(.foot) { display: none; }
+.page.ended .foot { margin-top: 8px; }
+/* 종료 화면에서도 코스 버튼은 보임 (다른 코스는 아직 진행 중일 수 있어서) */
+.page.ended #courseTabs { display: grid; }
+
+.farewell { padding: 28px var(--pad) 8px; }
+.farewell[hidden] { display: none; }
+.fw-course { display: block; width:100%; height:100%; margin: 0 0 18px; }
+.fw-route {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: fw-draw 2.4s ease-out 0.2s forwards;
+}
+.fw-start { fill: var(--white); stroke: var(--black); stroke-width: 2; }
+@keyframes fw-draw { to { stroke-dashoffset: 0; } }
+
+.fw-date { margin: 0; font-size: 0.85rem; color: var(--text-sub); }
+.farewell h2 { margin: 4px 0 18px; font-size: 1.75rem; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em; }
+.fw-who { margin: 0; padding: 0; list-style: none; }
+.fw-who li {
+  padding: 10px 0 10px 14px;
+  border-left: 4px solid;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.fw-runner { border-left-color: var(--orange) !important; }
+.fw-cheer { border-left-color: var(--red) !important; }
+.fw-staff { border-left-color: var(--blue) !important; }
+.fw-close { margin: 18px 0 0; font-size: 1rem; line-height: 1.7; word-break: keep-all; }
+.fw-note { margin: 18px 0 0; font-size: 0.8rem; color: var(--text-sub); }
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-route { animation: none; stroke-dashoffset: 0; }
+}
+
+/* ---------- 코스 보기 ---------- */
+.view-course[hidden] { display: none; }
+.course-sec { margin-top: 10px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.sec-head h2 { margin: 0; font-size: 0.95rem; font-weight: 800; }
+.sec-sub { font-size: 0.72rem; color: var(--text-sub); font-variant-numeric: tabular-nums; }
+
+.prof-wrap { margin-top: 6px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+.prof-svg { display: block; cursor: crosshair; }
+.pf-grid { stroke: #262626; stroke-width: 1; }
+.pf-ylab, .pf-xlab { fill: #8a8a8a; font-size: 10px; font-family: inherit; }
+.pf-ylab { text-anchor: end; }
+.pf-xlab { text-anchor: middle; }
+.pf-area { fill: var(--accent); fill-opacity: 0.28; }
+.pf-line { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linejoin: round; }
+.pf-aidline { stroke: #3a3a3a; stroke-width: 1; stroke-dasharray: 2 2; }
+.pf-aid { stroke: #000; stroke-width: 1; }
+.pf-aid.aid-water { fill: #2a86e0; }
+.pf-aid.aid-sponge { fill: #14b8a6; }
+.pf-aid.aid-mark { fill: #9ca3af; }
+.pf-cursor { stroke: #fff; stroke-width: 1; stroke-dasharray: 3 2; }
+.pf-dot { fill: var(--accent); stroke: #fff; stroke-width: 2; }
+
+/* 지도 위 CP 표시: 원 안에 km */
+.aid-icon { background: none; border: none; }
+.aid-pin {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
+  letter-spacing: -0.03em;
+  cursor: pointer;
+}
+.aid-pin.aid-water { background: #2a86e0; }
+.aid-pin.aid-sponge { background: #14b8a6; }
+/* 거리 표지(공식 CP 정보가 없을 때) */
+.aid-pin.aid-mark { background: #4b5563; }
+.aid-pin.on { background: var(--accent); transform: scale(1.15); }
+
+/* CP 목록 */
+.aid-list { margin: 6px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.aid-list li { border-bottom: 1px solid var(--line); }
+.aid-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 4px;
+  border: none;
+  background: transparent;
+  color: var(--white);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.aid-list button.on { background: #1a1a1a; box-shadow: inset 3px 0 0 var(--accent); }
+.aid-list button:focus-visible { outline: 2px solid var(--orange); outline-offset: -2px; }
+.aid-km { flex: none; width: 52px; font-size: 0.88rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.aid-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.aid-items { display: flex; flex-wrap: wrap; gap: 4px; }
+.aid-wx { font-size: 0.72rem; color: var(--text-sub); font-variant-numeric: tabular-nums; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: #1c1c1c;
+  font-size: 0.72rem;
+  color: #e0e0e0;
+}
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #888; }
+.chip-water::before { background: #2a86e0; }
+.chip-sponge::before { background: #14b8a6; }
+.chip-food::before { background: #f59e0b; }
+.chip-medic::before { background: #9ca3af; }
+
+/* ---------- 사용 안내 / 알림 ---------- */
+body.no-scroll { overflow: hidden; }
+.help {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+}
+.help[hidden] { display: none; }
+.help-sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 14px var(--pad) calc(16px + env(safe-area-inset-bottom));
+  background: rgba(21, 21, 21, 0.96);
+  border-top: 4px solid var(--orange);
+  border-radius: 12px 12px 0 0;
+}
+.help-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.help-head h2 { margin: 0; font-size: 1rem; font-weight: 800; }
+.help-close {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #4a4a4a;
+  border-radius: 16px;
+  background: transparent;
+  color: var(--white);
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.help-list { margin: 0; }
+.help-list div { padding: 9px 0; border-top: 1px solid var(--line); }
+.help-list dt { font-size: 0.85rem; font-weight: 800; margin-bottom: 2px; }
+.help-list dd { margin: 0; font-size: 0.84rem; line-height: 1.6; color: #d6d6d6; word-break: keep-all; }
+.help-keys { display: block; margin: 4px 0; color: var(--white); }
+.k { display: inline-block; width: 16px; height: 3px; margin: 0 4px 0 6px; vertical-align: middle; }
+.k:first-child { margin-left: 0; }
+.k-ncst { background: var(--white); }
+.k-ultra { background: var(--orange); }
+.k-vilage { background: var(--blue); }
+
+
+@media (min-width: 561px) {
+  .page { box-shadow: 0 0 0 1px var(--line); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+/* ---------- 값 색상 (기온·강수·풍속·습도, 기준은 app.js 의 WX_SCALE) ---------- */
+/* 어두운 화면에서는 글자색으로 */
+.wxv { color: var(--wx); }
+/* 강수 0mm 회색은 어두운 화면에서 기본 보조 글자색과 같게 */
+.wxv-rain[style*="#8a8a8a"] { color: var(--text-sub); }
+
+/* 지도 이름표(지점·CP): 어두운 카드 + 색 글자 — 아래 표와 같은 방식으로 값 색이 읽히게 */
+.leaflet-tooltip.cp-label {
+  background: rgba(20, 20, 20, 0.9);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+.leaflet-tooltip.cp-label .lab-sub { color: #bbb; }
+.leaflet-tooltip.cp-label .wxv-rain[style*="#8a8a8a"] { color: #bbb; }
+/* 선택한 지점은 빨간 띠로 표시하므로 기온 글자는 범례 색 그대로 */
+.leaflet-tooltip.cp-label.on b .wxv { color: var(--wx); }
+/* 말풍선 꼬리도 카드 색으로 */
+.leaflet-tooltip-left.cp-label::before { border-left-color: rgba(20, 20, 20, 0.9); }
+.leaflet-tooltip-right.cp-label::before { border-right-color: rgba(20, 20, 20, 0.9); }
+.leaflet-tooltip-top.cp-label::before { border-top-color: rgba(20, 20, 20, 0.9); }
+
+/* 범례 */
+.wx-legend-sec { margin-top: 14px; }
+.wx-legend { display: grid; gap: 8px; }
+.wxl-row { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 6px; }
+.wxl-title { font-size: 0.72rem; color: #d6d6d6; white-space: nowrap; }
+.wxl-title small { margin-left: 2px; font-size: 0.62rem; color: var(--text-sub); }
+.wxl-bar { display: flex; height: 8px; margin-bottom: 12px; }
+.wxl-seg { position: relative; flex: 1; }
+/* 칸 경계값: 칸 오른쪽 끝 아래 */
+.wxl-seg i {
+  position: absolute;
+  right: 0;
+  top: 10px;
+  transform: translateX(50%);
+  font-style: normal;
+  font-size: 0.6rem;
+  color: var(--text-sub);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- CCTV ---------- */
+/* 지도 마커: 어두운 원 + 흰 카메라 */
+.cctv-pin {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1a1d24;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cctv-pin svg { width: 14px; height: 14px; fill: #fff; }
+.cctv-pin.on { background: #e5484d; }
+
+/* 영상 창 뒤 반투명 배경: 닫기 전까지 뒤 화면(지도·스크롤·탭)을 누를 수 없음 */
+.cctv-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1990;
+  background: rgba(0, 0, 0, 0.6);
+  touch-action: none;
+}
+.cctv-backdrop[hidden] { display: none; }
+/* 영상 창이 열린 동안 페이지 스크롤 고정 (top 값은 app.js 가 지금 스크롤 위치로 넣음) */
+body.scroll-locked { position: fixed; left: 0; right: 0; width: 100%; overflow: hidden; }
+
+/* 영상 창: 화면 아래에서 올라오는 카드 */
+.cctv-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2000;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+  background: #15171c;
+  border-top: 1px solid #2a2e37;
+  border-radius: 14px 14px 0 0;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.55);
+  animation: cs-up .2s ease-out;
+}
+.cctv-sheet[hidden] { display: none; }
+@keyframes cs-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cctv-sheet { animation: none; } }
+.cs-head { display: flex; align-items: center; gap: 6px; }
+.badge-live, .badge-road {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1.5;
+}
+.badge-live { background: #e5484d; color: #fff; }
+.badge-live::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+.badge-road { background: #1f5f4f; color: #c9f2e4; }
+.cs-close {
+  margin-left: auto;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: #bbb;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.cs-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cs-name { margin: 8px 0 2px; font-size: 1.05rem; font-weight: 800; }
+.cs-meta { margin: 0 0 10px; font-size: 0.74rem; color: var(--text-sub); }
+.cs-video { position: relative; background: #000; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; }
+.cs-video video { width: 100%; height: 100%; display: block; object-fit: contain; background: #000; }
+.cs-msg {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #ddd;
+  background: rgba(0, 0, 0, 0.8);
+}
+.cs-msg[hidden] { display: none; }
+.cs-src { margin: 8px 0 0; font-size: 0.7rem; color: var(--text-sub); line-height: 1.4; }
+
+/* ---------- 사용 안내 (코치마크) ---------- */
+.tour { position: fixed; inset: 0; z-index: 3000; cursor: pointer; touch-action: none; }
+.tour[hidden] { display: none; }
+/* 안내 중에는 페이지 아래 여백을 늘려 footer 까지 화면 가운데로 올릴 수 있게 */
+body.tour-open { padding-bottom: 60vh; }
+/* 강조 영역: 바깥을 아주 큰 그림자로 어둡게 칠해서 이 부분만 뚫린 것처럼 보이게 */
+.tour-spot {
+  position: fixed;
+  border: 3px solid #fff;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.78);
+  pointer-events: none;
+  transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
+}
+.tour-spot.round { border-radius: 50%; }
+.tour-spot[hidden] { display: block; box-shadow: none; border: none; background: rgba(0, 0, 0, 0.78); inset: 0; }
+.tour-line { position: fixed; width: 2px; margin-left: -1px; background: #fff; pointer-events: none; }
+.tour-line[hidden] { display: none; }
+/* 가로 선 (설명 글이 오른쪽에 올 때) */
+.tour-line.flat { height: 2px; margin-left: 0; margin-top: -1px; }
+.tour-tip.side { right: 16px; text-align: left; font-size: 1.05rem; }
+.tour-tip {
+  position: fixed;
+  left: 20px;
+  right: 20px;
+  margin: 0;
+  text-align: center;
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  white-space: pre-line;
+  word-break: keep-all; /* 한글은 단어 단위로 줄바꿈 */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+.tour-hint {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  margin: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #c8c8c8;
+  pointer-events: none;
+}
+.tour-foot {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 60px;
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tour-dots { display: flex; gap: 10px; }
+.tour-dot {
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  opacity: .9;
+  cursor: pointer;
+}
+.tour-dot.on { background: #ffd400; opacity: 1; }
+.tour-dot:focus-visible { outline: 2px solid #ffd400; outline-offset: 3px; }
+/* 노란 동그라미 닫기 */
+.tour-close {
+  position: absolute;
+  right: 16px;
+  top: 6px;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: #ffd400;
+  color: #111;
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.tour-close:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
+
+/* =====================================================================
+   2026 JTBC 서울마라톤 테마
+   - 배경은 검정 고정, 강조는 코스도·메달 리본의 파랑→보라→마젠타 그라데이션 하나만 씀
+   - 숫자·영문은 Montserrat(대회 로고 느낌), 한글은 Pretendard
+   ===================================================================== */
+.top h1 { font-size: 1.12rem; letter-spacing: -0.02em; }
+.brand-latin { font-family: var(--latin); font-weight: 800; letter-spacing: 0; }
+.dday {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--grad);
+  color: #fff;
+  font-family: var(--latin);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+.help-btn { border-color: #3a3d46; color: var(--silver); }
+
+/* 코스 선택: 메달 리본처럼 위쪽에 그라데이션 띠, 거리 숫자를 크게 */
+.course-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px var(--pad) 10px;
+  background: var(--black);
+}
+.course-tabs a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px 5px 12px ;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text-sub);
+  text-decoration: none;
+  overflow: hidden;
+  transition: border-color .15s, background .15s;
+}
+.course-tabs a::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 3px;
+  background: var(--grad);
+  opacity: 0.25;
+}
+.ct-dist {
+  font-family: var(--latin);
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #6b7080;
+}
+.ct-dist small { margin-left: 2px; font-size: 0.62rem; font-weight: 700; letter-spacing: 0; }
+.course-tabs a.on { background: #0b0c10; border-color: #3b3f4a; }
+.course-tabs a.on::before { opacity: 1; }
+.course-tabs a.on .ct-dist {
+  background: var(--grad);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.course-tabs a:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* 보기 전환: 선택 밑줄을 그라데이션으로 */
+.views button.on { background: #0b0c10; border-bottom-color: transparent; position: relative; }
+.views button.on::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: var(--grad);
+}
+.views button:focus-visible { outline-color: var(--blue); }
+
+/* 지점 탭: 지점이 많아(풀코스 9곳) 옆으로 밀어서 보기 */
+.points {
+  grid-auto-columns: minmax(74px, 1fr);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.points::-webkit-scrollbar { display: none; }
+.points button { position: relative; padding: 4px 6px 2px; }
+.points .p-km { font-family: var(--latin); font-weight: 600; font-size: 0.66rem; }
+.points .p-name { white-space: nowrap; }
+.points button.on { background: #0b0c10; border-bottom-color: transparent; }
+.points button.on::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3px;
+  background: var(--ring, var(--grad));
+}
+
+/* 지도: OSM 타일을 어둡게 (공식 코스도처럼 검은 바탕에 회색 길) */
+#map { background: #0d0e11; }
+.leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(0.62) contrast(1.15); }
+.leaflet-control-attribution { background: rgba(0, 0, 0, 0.6) !important; color: #8a8f99; }
+.leaflet-control-attribution a { color: #b8bcc6; }
+
+/* 지점 표시: 흰 점 + 코스 색 테두리, 출발·도착은 굵은 링 */
+.cp-pin {
+  width: 14px;
+  height: 14px;
+  margin: 1px;
+  background: #fff;
+  border: 3px solid var(--ring, var(--blue));
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.6);
+}
+.cp-pin.cp-start, .cp-pin.cp-finish {
+  width: 18px;
+  height: 18px;
+  margin: -1px;
+  background: #000;
+  border-width: 4px;
+}
+.cp-pin.on { background: var(--ring, var(--blue)); box-shadow: 0 0 0 2px #000, 0 0 12px var(--ring, var(--blue)); }
+.cp-pin.cp-start.on, .cp-pin.cp-finish.on { background: #000; }
+.leaflet-tooltip.cp-label.on b .wxv { color: var(--wx); }
+.leaflet-tooltip-right.cp-label.on { box-shadow: inset 3px 0 0 var(--blue), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-left.cp-label.on { box-shadow: inset -3px 0 0 var(--blue), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-top.cp-label.on { box-shadow: inset 0 -3px 0 var(--blue), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-bottom.cp-label.on { box-shadow: inset 0 3px 0 var(--blue), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-bottom.cp-label::before { border-bottom-color: rgba(20, 20, 20, 0.9); }
+/* 구간 표지: 어두운 원 + 코스 색 테두리 */
+.aid-pin.aid-mark { background: #111318; border-color: var(--ring, #fff); font-family: var(--latin); }
+.aid-pin.on { background: var(--ring, var(--blue)); }
+
+/* 고저도: 코스와 같은 그라데이션 */
+.pf-area { fill: url(#pfGrad); fill-opacity: 0.3; }
+.pf-line { stroke: url(#pfGrad); stroke-width: 1.8; }
+.pf-grid { stroke: #1d1f25; }
+.pf-aid.aid-mark { fill: #fff; }
+.pf-dot { fill: var(--blue); }
+
+/* 시간별 예보: 대회 시간 칸을 마젠타로 */
+.tl-race { background-color: rgba(255, 46, 147, 0.07); border-left: 1px dashed var(--magenta); border-right: 1px dashed var(--magenta); }
+.tl-race span { color: #ff7ab8; }
+.lg-race { background: rgba(255, 46, 147, 0.3); border-left-color: var(--magenta); border-right-color: var(--magenta); }
+.range-tabs button.on { background: var(--blue); border-color: var(--blue); }
+
+/* 숫자 강조 */
+.now-stats dd { font-family: var(--latin); letter-spacing: -0.01em; }
+.aid-km { width: 68px; font-family: var(--latin); white-space: nowrap; letter-spacing: -0.02em; }
+.aid-km small { margin-left: 1px; font-size: 0.7em; font-weight: 700; color: var(--text-sub); letter-spacing: 0; }
+
+/* 사용 안내·CCTV 버튼의 노랑은 그대로 두고, 진행 점만 그라데이션 색으로 */
+.tour-dot.on { background: var(--magenta); }
+
+/* 지도 이름표: 평소에는 '이름 기온' 한 줄, 선택한 지점만 강수·풍속 줄까지 크게 */
+.leaflet-tooltip.cp-label { padding: 3px 7px; font-size: 12px; }
+.leaflet-tooltip.cp-label .lab-sub { display: none; }
+.leaflet-tooltip.cp-label.on { z-index: 700; padding: 5px 9px; font-size: 13px; }
+.leaflet-tooltip.cp-label.on .lab-sub { display: block; }
+.leaflet-tooltip.cp-label.aid-label .lab-sub { display: block; }
+/* 위치를 옮긴 이름표(labelOffset)는 꼬리가 엉뚱한 곳을 가리켜서 숨김 */
+.leaflet-tooltip.cp-label.lab-moved::before { display: none; }
+
+/* 구간 정보 고도: 해발 + 직전 구간 오르막 합(▲, 마젠타)·내리막 합(▼, 파랑) */
+.aid-items.aid-elev { align-items: baseline; gap: 8px; margin-top: 2px; font-size: 0.72rem; }
+.ae-alt { color: #fff; font-weight: 600; }
+.ae-up, .ae-dn { font-family: var(--latin); font-weight: 700; font-size: 0.7rem; }
+.ae-up { color: #ff6fae; }
+.ae-dn { color: #6f9bff; }
+.ae-lab { font-size: 0.66rem; color: #6b7080; }
+/* 출발·도착 표지: 지도 핀은 글자('출발'/'도착'), 목록은 작은 표시 */
+.aid-pin.aid-edge { font-size: 8px; letter-spacing: -0.03em; }
+.ae-edge { padding: 0 6px; border-radius: 999px; border: 1px solid #3a3d46; color: var(--silver); font-size: 0.64rem; line-height: 1.5; }
+/* 구간 정보 안내 문구 (급수·스펀지 위치 출처) */
+.aid-note { margin: 4px 0 0; font-size: 0.7rem; color: var(--text-sub); line-height: 1.5; }
+
+/* 예상 통과 시각 */
+.eta { margin-top: 16px; }
+.eta-ctrl { display: flex; gap: 12px; margin-top: 8px; font-size: 0.78rem; color: var(--text-sub); }
+.eta-ctrl label { display: flex; align-items: center; gap: 6px; }
+.eta-ctrl select {
+  padding: 5px 8px;
+  border: 1px solid #3a3d46;
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--white);
+  font: inherit;
+  font-family: var(--latin);
+  font-weight: 700;
+}
+.eta-list { margin: 8px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.eta-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 46px 26px 32px 40px 48px;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 4px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.eta-list li.eta-head { min-height: 0; padding: 6px 2px; font-size: 0.66rem; color: var(--text-sub); }
+.eta-list li.eta-head span { text-align: center; }
+.eta-list li.eta-head span:first-child { text-align: left; }
+.eta-name { min-width: 0; font-size: 0.82rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.eta-name small { display: block; font-size: 0.66rem; font-weight: 500; color: var(--text-sub); }
+.eta-time { font-family: var(--latin); font-size: 0.92rem; font-weight: 800; letter-spacing: -0.02em; text-align: center; }
+.eta-icon { display: flex; justify-content: center; }
+.eta-icon svg { width: 24px; height: 24px; }
+.eta-temp { font-size: 0.86rem; font-weight: 700; text-align: center; }
+.eta-val { font-size: 0.7rem; text-align: center; white-space: nowrap; }
+.eta-none { grid-column: 3 / -1; font-size: 0.7rem; color: var(--text-sub); text-align: center; }
+
+
+/* 통과 시각 보기 */
+.view-eta[hidden] { display: none; }
+.eta { margin-top: 10px; }
+.eta-list li.on { background: #14151a; box-shadow: inset 3px 0 0 var(--magenta); }
+/* 통과 시각 보기의 지도 이름표: '이름' + 둘째 줄 '09:14 · 8°' */
+.leaflet-tooltip.cp-label.lab-eta .lab-sub { display: block; font-size: 12px; color: #c9cdd3; }
+.leaflet-tooltip.cp-label.lab-eta .lab-sub b { margin: 0; font-family: var(--latin); font-weight: 800; color: #fff; }
+
+/* 습도 숨김 (2026-10-30): 습도 값이 믿기 어려워 화면에서만 감춤. 다시 보이려면 이 묶음을 지우면 됨
+   - 현재 날씨의 3번째 칸(습도), 시간별 예보의 습도 줄, 대회 날씨 탭 범례의 4번째 줄(습도) */
+.now-stats { grid-template-columns: repeat(3, 1fr); }
+.now-stats div:nth-child(3) { display: none; }
+.tl-row.tl-humid { display: none; }
+.wx-legend-sec .wx-legend:not([data-types]) .wxl-row:nth-child(4) { display: none; }
+
+
+/* =====================================================================
+   2026 문경 레전드 트레일 테마
+   - 배경 검정 + 대회 포스터의 형광 노랑 하나만 강조색으로 씀
+   - 노랑 위 글자는 검정 (흰 글자는 노랑 위에서 안 읽힘)
+   - 숫자·영문은 포스터처럼 굵은 장체 기울임(Barlow Condensed)
+   ===================================================================== */
+:root {
+  --trail: #e6e600;
+  --accent: #e6e600;
+  --grad: linear-gradient(90deg, #d6e000 0%, #e6e600 50%, #f5f03c 100%);
+  --latin: 'Barlow Condensed', 'Pretendard', sans-serif;
+}
+.brand-latin { font-style: italic; font-weight: 800; color: var(--trail); letter-spacing: 0.01em; }
+.dday { color: #000; font-style: italic; }
+.help-btn:focus-visible, .views button:focus-visible, .points button:focus-visible { outline-color: var(--trail); }
+.range-tabs button.on { background: var(--trail); border-color: var(--trail); color: #000; }
+
+/* 대회 요약 띠: 포스터의 노란 띠처럼 */
+.race-strip {
+  display: grid;
+  grid-template-columns: 1.25fr 1.1fr 0.9fr;
+  margin: 4px var(--pad) 10px;
+  padding: 8px 12px 6px;
+  border-radius: 8px;
+  background: var(--trail);
+  color: #000;
+}
+.race-strip div { margin: 0; }
+.race-strip dt { font-size: 0.66rem; font-weight: 800; line-height: 1.2; }
+.race-strip dd {
+  margin: 0;
+  font-family: var(--latin);
+  font-style: italic;
+  font-weight: 800;
+  font-size: 1.7rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.race-strip dd small { margin-left: 2px; font-size: 0.55em; font-style: normal; font-weight: 800; }
+
+/* 지도 표시 */
+.cp-pin.on { box-shadow: 0 0 0 2px #000, 0 0 12px var(--trail); }
+.leaflet-tooltip-right.cp-label.on { box-shadow: inset 3px 0 0 var(--trail), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-left.cp-label.on { box-shadow: inset -3px 0 0 var(--trail), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-top.cp-label.on { box-shadow: inset 0 -3px 0 var(--trail), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.leaflet-tooltip-bottom.cp-label.on { box-shadow: inset 0 3px 0 var(--trail), 0 2px 6px rgba(0, 0, 0, 0.45); }
+.aid-pin { color: #fff; }
+.aid-pin.aid-mark { background: #111318; border-color: var(--ring, var(--trail)); }
+/* CP(화장실·매점이 있는 휴게소): 노란 점 + 검정 글자 */
+.aid-pin.aid-cp { background: var(--trail); border-color: #000; color: #000; }
+.aid-pin.on { background: var(--trail); color: #000; }
+.pf-dot { fill: var(--trail); }
+.chip-food::before { background: var(--trail); }
+
+/* 시간별 예보의 대회 시간 칸 */
+.tl-race { background-color: rgba(230, 230, 0, 0.07); border-left: 1px dashed var(--trail); border-right: 1px dashed var(--trail); }
+.tl-race span { color: var(--trail); }
+.lg-race { background: rgba(230, 230, 0, 0.3); border-left-color: var(--trail); border-right-color: var(--trail); }
+
+/* 고도 오르내림: 오르막 노랑, 내리막 회청 */
+.ae-up { color: var(--trail); }
+.ae-dn { color: #8fb4ff; }
+
+/* 구간 정보: 통과 지점 이름과 컷오프 */
+.aid-name { font-size: 0.82rem; font-weight: 800; line-height: 1.3; }
+.aid-cutoff, .eta-cutoff {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--trail);
+  color: #000;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.6;
+  vertical-align: 1px;
+}
+.eta-cutoff { margin-left: 0; margin-top: 2px; }
+.eta-cutoff.late { background: #ff4d4f; color: #fff; }
+.eta-time.late { color: #ff4d4f; }
+.eta-list li.on { box-shadow: inset 3px 0 0 var(--trail); }
+.eta-time { font-style: italic; font-size: 1.05rem; }
+
+.tour-dot.on { background: var(--trail); }
+.fw-route { stroke: var(--trail); }

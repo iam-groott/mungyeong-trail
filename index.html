@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>2026 문경 레전드 트레일 21K 날씨 & 코스 정보 | Mungyeong Legend Trail: Weather & Course Info</title>
+  <meta name="description" content="2026 문경 레전드 트레일 백두대간 21K 지점별 날씨 & 코스 정보">
+  <meta property="og:title" content="2026 문경 레전드 트레일 21K 날씨 & 코스 정보">
+  <meta property="og:description" content="문경새재·주흘산 21K 코스 지점별 날씨, 고저도, 예상 페이스">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css">
+  <!-- 숫자·영문 제목용 (대회 포스터의 굵은 장체 숫자 느낌) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="top">
+      <div class="top-row">
+        <h1><span class="brand-latin">LEGEND TRAIL</span> 문경 21K</h1>
+        <div class="top-right">
+          <span id="dday" class="dday"></span>
+          <button type="button" id="helpOpen" class="help-btn weather-only" aria-haspopup="dialog" aria-controls="help" aria-label="사용 안내 열기">?</button>
+        </div>
+      </div>
+      <p class="top-sub"><span id="updatedAt">불러오는 중…</span></p>
+    </header>
+
+    <section id="farewell" class="farewell" hidden aria-labelledby="farewellTitle">
+      <svg id="farewellCourse" class="fw-course" viewBox="0 0 200 200" aria-hidden="true"></svg>
+      <p class="fw-date">2026년 11월 7일</p>
+      <h2 id="farewellTitle">모두 수고 많으셨습니다</h2>
+      <ul class="fw-who">
+        <li class="fw-runner">문경새재를 지나 주흘산 능선까지 끝까지 달려 낸 러너 여러분, 정말 고생 많으셨습니다.</li>
+        <li class="fw-cheer">관문과 산길에서 응원해 주신 가족, 친구, 모든 분들 고맙습니다.</li>
+        <li class="fw-staff">새벽부터 코스와 CP를 지켜 준 스태프와 자원봉사자 여러분, 수고 많으셨습니다.</li>
+      </ul>
+      <p class="fw-close">기록이 마음에 들든 아쉽든, 함께였기에 오늘이 더 좋은 추억이 되었으리라 생각해요. 각자의 다음 레이스와 다음 목표도 응원합니다.</p>
+      <p class="fw-note">날씨 안내는 여기서 마칩니다.</p>
+    </section>
+
+    <div id="sampleNotice" class="notice weather-only" hidden>
+      첫 자동 수집이 끝나면 실제 기상청 자료로 바뀝니다.
+    </div>
+
+    <!-- 대회 요약: 공식 코스 정보 (코스거리 · 총 상승 · 제한시간) -->
+    <dl class="race-strip weather-only" aria-label="대회 요약">
+      <div><dt>코스거리</dt><dd>21.50<small>km</small></dd></div>
+      <div><dt>총 상승</dt><dd>1,203<small>m</small></dd></div>
+      <div><dt>제한시간</dt><dd>6<small>시간</small></dd></div>
+    </dl>
+
+    <nav class="views weather-only" id="viewTabs" role="tablist" aria-label="보기 전환">
+      <button type="button" role="tab" data-view="weather" class="on" aria-selected="true">대회 날씨</button>
+      <button type="button" role="tab" data-view="course" aria-selected="false">코스 정보</button>
+      <button type="button" role="tab" data-view="eta" aria-selected="false">예상 페이스</button>
+    </nav>
+
+    <section class="map-box weather-only">
+      <div id="map" aria-label="문경 레전드 트레일 21K 코스 지도"></div>
+      <button id="resetBtn" class="reset-btn" type="button" aria-label="지도를 처음 화면으로">초기화</button>
+      <!-- 코스 정보에서만 보이는 구간(거리 표지) 표시 켜기/끄기 -->
+      <div class="map-legend" id="aidLegend" hidden>
+        <button type="button" class="legend-item" id="aidToggle" aria-pressed="true" aria-label="지도에 구간 표지 표시"><span class="dot dot-km"></span>구간</button>
+        <!-- data/cctv.json 에 코스 근처 CCTV가 있을 때만 보임 -->
+        <button type="button" class="legend-item" id="cctvToggle" aria-pressed="true" aria-label="지도에 CCTV 표시" hidden><span class="dot dot-cctv"></span>CCTV</button>
+      </div>
+    </section>
+
+    <nav class="points weather-only view-weather" id="pointTabs" aria-label="지점 선택"></nav>
+
+    <main class="content">
+      <div id="viewWeather" class="view-weather">
+      <p id="pointMeta" class="meta point-meta"></p>
+
+
+      <section class="now" aria-labelledby="nowTitle">
+        <div class="now-head">
+          <h2 id="nowTitle">현재 날씨</h2>
+          <span id="nowTime" class="now-time"></span>
+        </div>
+        <dl id="nowStats" class="now-stats"></dl>
+      </section>
+
+      <section class="hourly" aria-labelledby="hourlyTitle">
+        <div class="hourly-head">
+          <h2 id="hourlyTitle">시간별 예보</h2>
+          <div class="range-tabs" aria-label="이동" id="rangeTabs">
+            <button type="button" data-range="now" class="on">현재</button>
+            <button type="button" data-range="sat">24일(토)</button>
+            <button type="button" data-range="race">25일(일)</button>
+          </div>
+        </div>
+        <div class="tl-wrap">
+          <div class="tl" id="timeline" tabindex="0" aria-label="시간별 예보 표, 옆으로 밀어서 보기"></div>
+          <p id="tlMsg" class="tl-msg" role="status" hidden></p>
+        </div>
+        <!-- 범례: 필요하면 hidden 을 지우면 다시 보임 -->
+        <ul class="legend" hidden>
+          <li><i class="lg lg-ncst"></i>관측(실황)</li>
+          <li><i class="lg lg-ultra"></i>초단기예보</li>
+          <li><i class="lg lg-vilage"></i>단기예보</li>
+          <li><i class="lg lg-race"></i>대회 시간</li>
+        </ul>
+      </section>
+
+      <!-- 값 색상 범례 (app.js 의 WX_SCALE 로 그림) -->
+      <section class="wx-legend-sec" aria-label="값 색상 기준">
+        <div class="wx-legend"></div>
+      </section>
+      </div>
+
+      <!-- 예상 페이스 보기: 목표 기록·출발 시각 → 지점별 예상 통과 시각과 그 시각 예보 (지도 이름표도 통과 시각으로 바뀜) -->
+      <div id="viewEta" class="view-eta weather-only" hidden>
+        <section class="eta" id="etaSec" aria-labelledby="etaTitle">
+          <div class="sec-head">
+            <h2 id="etaTitle">지점별 예상 통과 시각</h2>
+            <span id="etaPace" class="sec-sub"></span>
+          </div>
+          <div class="eta-ctrl">
+            <label>출발 시각 <select id="etaStart"></select></label>
+            <label>목표 기록 <select id="etaTarget"></select></label>
+          </div>
+          <ul id="etaList" class="eta-list"></ul>
+          <p class="aid-note">예상 통과 시각과 날씨 예보는 참고용으로 활용해 주세요.</p>
+        </section>
+      </div>
+
+      <!-- 코스 보기: 고저도 + 구간 정보(거리 표지) -->
+      <div id="viewCourse" class="view-course weather-only" hidden>
+        <section class="course-sec" aria-labelledby="profTitle">
+          <div class="sec-head">
+            <h2 id="profTitle">고저도</h2>
+            <span id="profInfo" class="sec-sub"></span>
+          </div>
+          <div class="prof-wrap" id="profWrap">
+            <svg id="profile" class="prof-svg" aria-label="코스 고저도. 옆으로 밀면 지도에 위치가 표시돼요"></svg>
+          </div>
+        </section>
+
+        <section class="course-sec" aria-labelledby="aidTitle">
+          <div class="sec-head">
+            <h2 id="aidTitle">구간 정보</h2>
+            <!-- <span class="sec-sub">CP 지점을 선택해 보세요</span> -->
+          </div>
+          <p class="aid-note">통과 순서와 CP·컷오프는 대회 공식 코스 안내 기준이에요. 현장 상황에 따라 바뀔 수 있어요.</p>
+          <ul id="aidList" class="aid-list"></ul>
+        </section>
+
+        <section class="wx-legend-sec" aria-label="값 색상 기준">
+          <div class="wx-legend" data-types="temp,rain,wind"></div>
+        </section>
+      </div>
+
+      <footer class="foot">
+        <p class="foot-group">
+          <!--
+          <span class="foot-title">Data Sources &amp; Attribution</span><br/>
+          -->
+          <span>Data Sources &amp; Attribution</span><br/>
+          <a href="https://www.data.go.kr/data/15084084/openapi.do" target="_blank" rel="noopener noreferrer" title="기상청 단기예보 조회서비스 (공공누리 제1유형)">KMA</a> ·
+          <a href="https://www.its.go.kr" target="_blank" rel="noopener noreferrer" title="국가교통정보센터 CCTV">ITS</a> ·
+          <a href="https://leafletjs.com" target="_blank" rel="noopener noreferrer">Leaflet.js</a> ·
+          <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a>
+        </p>
+        <p class="foot-group">
+          Designed &amp; Developed by <a href="https://www.instagram.com/iam_groott" target="_blank" rel="noopener noreferrer">@iam_groott</a><br/>
+          <span class="foot-role"><svg class="foot-icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="2" width="14" height="12" rx="2.5"/><path d="M4.5 6l2.5 2-2.5 2M8.5 10.5h3"/></svg>Web Developer · Personal Project</span>
+        </p>
+        <p class="foot-group">© 2026 All rights reserved.<br/>Third-party data and libraries belong to their respective owners.</p>
+      </footer>
+    </main>
+  </div>
+
+  <div id="help" class="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
+  </div>
+
+  <!-- 사용 안내(코치마크): 화면을 어둡게 덮고 기능을 하나씩 강조해서 설명 -->
+  <div id="tour" class="tour" role="dialog" aria-modal="true" aria-label="사용 안내" hidden>
+    <div id="tourSpot" class="tour-spot" hidden></div>
+    <div id="tourLine" class="tour-line" hidden></div>
+    <p id="tourTip" class="tour-tip"><span id="tourText"></span></p>
+    <p id="tourHint" class="tour-hint">화면을 누르면 다음 안내로 넘어가요</p>
+    <div class="tour-foot">
+      <div id="tourDots" class="tour-dots"></div>
+      <button type="button" id="tourClose" class="tour-close" aria-label="안내 닫기">&times;</button>
+    </div>
+  </div>
+
+  <!-- CCTV 실시간 영상 (지도에서 CCTV를 누르면 아래에서 올라옴)
+       열려 있는 동안은 뒤 화면을 반투명으로 덮어서 스크롤·지도 조작을 막고, 닫아야 다른 기능을 쓸 수 있음 -->
+  <div id="cctvBackdrop" class="cctv-backdrop" hidden></div>
+  <section id="cctvSheet" class="cctv-sheet" role="dialog" aria-modal="true" aria-labelledby="cctvName" hidden>
+    <div class="cs-head">
+      <span class="badge-live">LIVE</span>
+      <span class="badge-road" id="cctvRoad">국도</span>
+      <button type="button" class="cs-close" id="cctvClose" aria-label="영상 닫기">&times;</button>
+    </div>
+    <h3 id="cctvName" class="cs-name"></h3>
+    <p id="cctvMeta" class="cs-meta"></p>
+    <div class="cs-video">
+      <video id="cctvVideo" playsinline muted autoplay controls></video>
+      <p id="cctvMsg" class="cs-msg" role="status" hidden></p>
+    </div>
+    <p class="cs-src">국가교통정보센터(ITS) 제공 · 실제 상황과 30초~1분 정도 차이가 날 수 있어요.</p>
+  </section>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
