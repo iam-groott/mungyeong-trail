@@ -526,18 +526,19 @@ body {
 .farewell { padding: 28px var(--pad) 8px; }
 .farewell[hidden] { display: none; }
 .fw-course { display: block; width:100%; height:100%; margin: 0 0 18px; }
-.fw-route {
-  fill: none;
-  stroke: var(--orange);
-  stroke-width: 3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: fw-draw 2.4s ease-out 0.2s forwards;
-}
+/* 종료 화면 코스: 선·러너 점·반짝임 색은 .fw-course 의 color 하나로 (사이트마다 바꾸기 쉽게) */
+.fw-course { color: var(--orange); overflow: visible; }
+.fw-trace { fill: none; stroke: rgba(255, 255, 255, 0.1); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.fw-route { fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .fw-start { fill: var(--white); stroke: var(--black); stroke-width: 2; }
-@keyframes fw-draw { to { stroke-dashoffset: 0; } }
+.fw-runner { fill: #fff; stroke: currentColor; stroke-width: 2.5; transform-box: fill-box; transform-origin: center; }
+.fw-ring { fill: none; stroke: currentColor; stroke-width: 2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+/* 도착하면: 러너 점이 톡 커졌다 돌아오고, 고리 두 개가 퍼지며 반짝 */
+.fw-done .fw-runner { animation: fw-pop 0.6s ease-out; }
+.fw-done .fw-ring { animation: fw-ring 1.4s ease-out 2; }
+.fw-done .fw-ring2 { animation-delay: 0.4s; }
+@keyframes fw-pop { 0% { transform: scale(1); } 40% { transform: scale(1.9); } 100% { transform: scale(1); } }
+@keyframes fw-ring { 0% { opacity: 0.9; transform: scale(0.6); } 100% { opacity: 0; transform: scale(3.4); } }
 
 .fw-date { margin: 0; font-size: 0.85rem; color: var(--text-sub); }
 .farewell h2 { margin: 4px 0 18px; font-size: 1.75rem; font-weight: 800; line-height: 1.3; letter-spacing: -0.02em; }
@@ -557,7 +558,7 @@ body {
 .fw-note { margin: 18px 0 0; font-size: 0.8rem; color: var(--text-sub); }
 
 @media (prefers-reduced-motion: reduce) {
-  .fw-route { animation: none; stroke-dashoffset: 0; }
+  .fw-done .fw-runner, .fw-done .fw-ring { animation: none; }
 }
 
 /* ---------- 코스 보기 ---------- */
@@ -1239,4 +1240,4 @@ body.tour-open { padding-bottom: 60vh; }
 .eta-time { font-style: italic; font-size: 1.05rem; }
 
 .tour-dot.on { background: var(--trail); }
-.fw-route { stroke: var(--trail); }
+.fw-course { color: var(--trail); }

@@ -248,10 +248,77 @@
     const start = course.checkpoints[0];
     const sx = ((start.lon * kx - minX) * scale + offX).toFixed(1);
     const sy = ((-start.lat - minY) * scale + offY).toFixed(1);
+    // fw-trace: 앞으로 달릴 길(아주 흐리게), fw-route: 러너가 지나간 길(빛나는 선), fw-ring: 도착 반짝임, fw-runner: 러너 점
     $('#farewellCourse').html(
-      '<path class="fw-route" pathLength="1" d="' + d + '"/>' +
-      '<circle class="fw-start" cx="' + sx + '" cy="' + sy + '" r="5"/>'
+      '<defs><filter id="fwGlow" x="-30%" y="-30%" width="160%" height="160%">' +
+      '<feGaussianBlur stdDeviation="2.4" result="blur"/>' +
+      '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>' +
+      '<path class="fw-trace" d="' + d + '"/>' +
+      '<path class="fw-route" filter="url(#fwGlow)" d="' + d + '"/>' +
+      '<circle class="fw-start" cx="' + sx + '" cy="' + sy + '" r="5"/>' +
+      '<circle class="fw-ring" r="6"/>' +
+      '<circle class="fw-ring fw-ring2" r="6"/>' +
+      '<circle class="fw-runner" filter="url(#fwGlow)" cx="' + sx + '" cy="' + sy + '" r="5"/>'
     );
+    animateFarewellRoute();
+  }
+
+  // 종료 화면 코스 그리기: 러너 점이 코스를 따라 달리며 빛나는 선을 남기고, 도착하면 반짝임 (전체 FW_DRAW_MS)
+  // SVG pathLength 대신 실제 선 길이(getTotalLength)로 계산 → iOS Safari에서도 PC와 똑같이 그려짐
+  // 기기의 '동작 줄이기' 설정이 켜져 있으면 움직임 없이 다 그린 모습만 보여 줌
+  const FW_DRAW_MS = 5000;
+  const FW_DELAY_MS = 400;
+
+  function animateFarewellRoute() {
+    const $svg = $('#farewellCourse');
+    const route = $svg.find('.fw-route').get(0);
+    const runner = $svg.find('.fw-runner').get(0);
+    if (!route || !runner || typeof route.getTotalLength !== 'function') {
+      return;
+    }
+    const total = route.getTotalLength();
+    route.style.strokeDasharray = total + ' ' + total;
+
+    // t(0~1)만큼 달린 자리에 선 끝과 러너 점을 둠
+    function place(t) {
+      route.style.strokeDashoffset = String(total * (1 - t));
+      const pt = route.getPointAtLength(total * t);
+      runner.setAttribute('cx', pt.x.toFixed(1));
+      runner.setAttribute('cy', pt.y.toFixed(1));
+    }
+
+    // 도착: 러너 점 위치에 반짝임 고리 두 개 (CSS 애니메이션)
+    function finish() {
+      place(1);
+      const end = route.getPointAtLength(total);
+      $svg.find('.fw-ring').attr({ cx: end.x.toFixed(1), cy: end.y.toFixed(1) });
+      $svg.addClass('fw-done');
+    }
+
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduce || !window.requestAnimationFrame) {
+      finish();
+      return;
+    }
+    place(0);
+    let startTime = null;
+    function step(now) {
+      if (startTime === null) {
+        startTime = now;
+      }
+      const t = Math.min(1, (now - startTime) / FW_DRAW_MS);
+      // 거의 일정한 속도로 달리되 출발·도착만 살짝 부드럽게
+      const eased = 0.8 * t + 0.2 * (0.5 - Math.cos(Math.PI * t) / 2);
+      place(eased);
+      if (t < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        finish();
+      }
+    }
+    setTimeout(function () {
+      window.requestAnimationFrame(step);
+    }, FW_DELAY_MS);
   }
 
   function init() {
