@@ -1,0 +1,73 @@
+name: 날씨 자료 갱신
+
+on:
+#  schedule:
+    # 10분마다(정시, 10, 20, 30, 40, 50분). 기상청 실황·초단기예보가 10분마다 갱신되는 것에 맞춤
+    # GitHub 예약 실행은 붐비면 몇 분~수십 분 늦어지거나 건너뛸 수 있음
+    # - cron: "*/10 * * * *"
+#    - cron: "7,17,27,37,47,57 * * * *"
+  # GitHub 자체 예약은 지연·누락이 잦아 끄고, cron-job.org가 10분마다 아래 workflow_dispatch를 호출함
+  workflow_dispatch: {}   # cron-job.org 또는 Actions 탭에서 수동 실행
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-weather
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      # 대회 종료(course-21k.json 의 serviceEnd) 이후에는 아래 단계를 모두 건너뜀 → API 호출 없음
+      - name: 서비스 기간 확인
+        id: guard
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from datetime import datetime, timezone
+          ends = [json.load(open(p, encoding="utf-8")).get("serviceEnd") for p in ("data/course-21k.json",)]
+          ended = all(e and datetime.now(timezone.utc) >= datetime.fromisoformat(e) for e in ends)
+          print("active=" + ("false" if ended else "true"))
+          PY
+
+      - name: 종료 안내
+        if: steps.guard.outputs.active != 'true'
+        run: echo "대회가 끝나 수집을 멈췄습니다. Actions에서 이 워크플로를 Disable 해 두면 예약 실행 자체가 멈춥니다."
+
+      - uses: actions/setup-python@v6
+        if: steps.guard.outputs.active == 'true'
+        with:
+          python-version: "3.12"
+
+      - name: 기상청 API 호출
+        if: steps.guard.outputs.active == 'true'
+        env:
+          KMA_SERVICE_KEY: ${{ secrets.KMA_SERVICE_KEY }}
+        run: python scripts/fetch_weather.py data/weather.json data/course-21k.json
+
+      - name: 변경분 커밋
+        if: steps.guard.outputs.active == 'true'
+        run: |
+          git config user.name "weather-bot"
+          git config user.email "weather-bot@users.noreply.github.com"
+          # 기상청 서버 연결 실패로 수집을 건너뛰면 파일을 새로 쓰지 않음 → 처음 실행이면 파일 자체가 없으므로 커밋할 것 없이 끝냄
+          if [ ! -f data/weather.json ]; then
+            echo "weather.json 이 아직 없어 커밋할 것이 없습니다 (이번 수집을 건너뜀)."
+            exit 0
+          fi
+          git add data/weather.json
+          if git diff --cached --quiet; then
+            echo "변경 없음"
+          else
+            git commit -m "날씨 자료 갱신 $(TZ=Asia/Seoul date '+%Y-%m-%d %H:%M')"
+            # 그사이 다른 커밋(파일 업로드 등)이 올라왔으면 그 위에 얹어서 올림 → push 거절 방지
+            for i in 1 2 3; do
+              git pull --rebase origin main && git push && break
+              sleep 5
+            done
+          fi
